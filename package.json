@@ -1,0 +1,37 @@
+{
+  "name": "cordova-mobilepay-appswitch",
+  "version": "0.1.0",
+  "description": "Cordova plugin for MobilePay AppSwitch",
+  "main": "www/index.js",
+  "dependencies": {
+    "nanoassert": "^1.1.0"
+  },
+  "devDependencies": {
+    "cordova": "^8.0.0",
+    "sync-cordova-xml": "^0.3.0"
+  },
+  "scripts": {
+    "version": "sync-cordova-xml package.json plugin.xml --output plugin.xml && git add plugin.xml"
+  },
+  "cordova": {
+    "id": "cordova-mobilepay-appswitch",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emilbayes/cordova-mobilepay-appswitch.git"
+  },
+  "keywords": [
+    "cordova",
+    "android"
+  ],
+  "author": "Emil Bay <github@tixz.dk>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/emilbayes/cordova-mobilepay-appswitch/issues"
+  },
+  "homepage": "https://github.com/emilbayes/cordova-mobilepay-appswitch#readme"
+}

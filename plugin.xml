@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-mobilepay-appswitch" version="0.1.0">
+  <name>cordova-mobilepay-appswitch</name>
+  <description>Cordova plugin for MobilePay AppSwitch</description>
+  <author email="github@tixz.dk">Emil Bay</author>
+  <keywords>cordova,android</keywords>
+  <license>ISC</license>
+  <repo>git+https://github.com/emilbayes/cordova-mobilepay-appswitch.git</repo>
+  <issue>https://github.com/emilbayes/cordova-mobilepay-appswitch/issues</issue>
+  <js-module src="www/index.js" name="MobilePayAppSwitch">
+      <clobbers target="mobilepay" />
+  </js-module>
+  <platform name="android">
+    <source-file src="src/android/CDVMobilePayAppSwitch.java" target-dir="src/com/github/emilbayes/CDVMobilePayAppSwitch"/>
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="MobilePayAppSwitch">
+        <param name="android-package" value="com.github.emilbayes.CDVMobilePayAppSwitch.CDVMobilePayAppSwitch"/>
+        <param name="onload" value="true"/>
+      </feature>
+    </config-file>
+  </platform>
+  <platform name="ios">
+    <preference name="WIDGET_ID" />
+    <preference name="URL_SCHEME" />
+    <framework src="MobilePay-AppSwitch-SDK" type="podspec" spec="~> 1.8" />
+
+    <config-file target="config.xml" parent="/*">
+      <!-- <preference  href="mobilepay:*" />
+      <preference  href="mobilepayfi:*" />
+      <preference  href="mobilepayno:*" /> -->
+      <feature name="MobilePayAppSwitch">
+        <param name="ios-package" value="CDVMobilePayAppSwitch"/>
+        <param name="onload" value="true"/>
+      </feature>
+    </config-file>
+    <header-file src="src/ios/CDVMobilePayAppSwitch.h" />
+    <source-file src="src/ios/CDVMobilePayAppSwitch.m" />
+
+    <config-file target="*-Info.plist" parent="CFBundleURLTypes">
+      <array>
+        <dict>
+          <key>CFBundleURLName</key>
+          <string>$WIDGET_ID</string>
+          <key>CFBundleURLSchemes</key>
+          <array>
+              <string>$URL_SCHEME</string>
+          </array>
+        </dict>
+    </array>
+    </config-file>
+    <config-file target="*-Info.plist" parent="LSApplicationQueriesSchemes">
+      <array>
+        <string>mobilepay</string>
+        <!-- <string>mobilepayno</string>
+        <string>mobilepayfi</string> -->
+      </array>
+    </config-file>
+  </platform>
+</plugin>
