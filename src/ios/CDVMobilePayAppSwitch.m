@@ -76,12 +76,15 @@
 
     [[MobilePayManager sharedInstance] beginMobilePaymentWithPayment:payment error:^(NSError * _Nonnull error) {
         dispatch_async(dispatch_get_main_queue(), ^{
+            [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:error.userInfo];
 
             [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
             inflightPaymentCallbackId = nil;
         });
     }];
+
+    [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
 }
 
 - (void)handleOpenURL:(NSNotification*)notification {
@@ -95,7 +98,7 @@
 - (void)handleMobilePayPaymentWithUrl:(NSURL*)url
 {
     [[MobilePayManager sharedInstance]handleMobilePayPaymentWithUrl:url success:^(MobilePaySuccessfulPayment * _Nullable payment) {
-
+        [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
         NSDictionary* result = @{@"orderId": payment.orderId,
                                   @"transactionId": payment.transactionId,
                                   @"signature": payment.signature,
@@ -109,6 +112,7 @@
         inflightPaymentCallbackId = nil;
 
     } error:^(NSError * _Nonnull error) {
+        [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:error.userInfo];
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
