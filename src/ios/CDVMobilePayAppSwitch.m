@@ -49,9 +49,6 @@
      merchantUrlScheme:merchantUrlScheme
      country:country];
 
-    [[MobilePayManager sharedInstance] setReturnSeconds:0];
-    [[MobilePayManager sharedInstance] setTimeoutSeconds:5];
-
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
