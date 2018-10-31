@@ -5,33 +5,21 @@
 @interface CDVMobilePayAppSwitch () {}
 @end
 
-static void *IsAppSwitchInProgressContext = &IsAppSwitchInProgressContext;
-
 @implementation CDVMobilePayAppSwitch
 
 - (void)attachListener:(CDVInvokedUrlCommand*)command
 {
-    [[MobilePayManager sharedInstance] addObserver:self forKeyPath:@"isAppSwitchInProgress" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld | NSKeyValueObservingOptionInitial) context:IsAppSwitchInProgressContext];
-
     listenerCallback = command;
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary *)change
-                       context:(void *)context {
-
-    if (context == IsAppSwitchInProgressContext) {
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[[MobilePayManager sharedInstance] isAppSwitchInProgress]];
+- (void)notifyListenerOfProp:(NSString*)prop
+                       value:(id)value
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{@"prop": prop, @"value": value}];
         [pluginResult setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:listenerCallback.callbackId];
-    }
-
-    // Any unrecognized context must belong to super
-    [super observeValueForKeyPath:keyPath
-                         ofObject:object
-                           change:change
-                          context:context];
+    });
 }
 
 - (void)isMobilePayInstalled:(CDVInvokedUrlCommand*)command

@@ -8,6 +8,7 @@
 }
 
 - (void)attachListener:(CDVInvokedUrlCommand*)command;
+- (void)notifyListenerOfProp:(NSString*)prop value:(id)value;
 
 - (void)isMobilePayInstalled:(CDVInvokedUrlCommand*)command;
 - (void)setupWithMerchantId:(CDVInvokedUrlCommand*)command;
