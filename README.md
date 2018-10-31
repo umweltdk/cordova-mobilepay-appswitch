@@ -5,7 +5,7 @@
 ## Usage
 
 ```js
-window.mobilepay.isInstalled(onisinstalled)
+window.mobilepay.isMobilePayInstalled(onisinstalled)
 
 function onisinstalled (err, isinstalled) {
   if (err) throw err // fatal error
@@ -31,7 +31,7 @@ function onpayment (err, payment) {
 
 ## API
 
-### `window.mobilepay.isInstalled(cb(err, isInstalled))`
+### `window.mobilepay.isMobilePayInstalled(cb(err, isInstalled))`
 
 ### `window.mobilepay.setupWithMerchantId(merchantId, merchantUrlScheme, cb(err))`
 
