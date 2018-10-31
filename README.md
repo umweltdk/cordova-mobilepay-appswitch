@@ -42,6 +42,23 @@ double payments in case of failure. Two identical `orderId`s created more than
 24 hours apart will get different transaction id's, but still be considered the
 same order.
 
+Payment will be an object of:
+
+```js
+{
+  // These properties are always present
+  orderId: String,
+  success: Boolean,
+  cancelled: Boolean,
+
+  // These properties are only present if success === false (cancelled is always the negation of success)
+  transactionId: String,
+  signature: String,
+  productPrice: Number,
+  amountWithdrawnFromCard: Number
+}
+```
+
 ## Install
 
 ```sh

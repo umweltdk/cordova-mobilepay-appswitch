@@ -100,7 +100,9 @@
                                   @"transactionId": payment.transactionId,
                                   @"signature": payment.signature,
                                   @"productPrice": @(payment.productPrice),
-                                  @"amountWithdrawnFromCard": @(payment.amountWithdrawnFromCard)};
+                                  @"amountWithdrawnFromCard": @(payment.amountWithdrawnFromCard),
+                                  @"success": @NO,
+                                  @"cancelled": @YES};
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:result];
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
@@ -112,7 +114,12 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
         inflightPaymentCallbackId = nil;
     } cancel:^(MobilePayCancelledPayment * _Nullable payment) {
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:NO];
+        [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
+        NSDictionary* result = @{@"orderId": payment.orderId,
+                                 @"success": @NO,
+                                 @"cancelled": @YES};
+
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:result];
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
         inflightPaymentCallbackId = nil;
