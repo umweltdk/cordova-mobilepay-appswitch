@@ -1,4 +1,8 @@
+var _isAppSwitchInProgress = false
 module.exports = {
+  get isAppSwitchInProgress () {
+    return _isAppSwitchInProgress
+  },
   isMobilePayInstalled: function (cb) {
     exec('isMobilePayInstalled', [], cb)
   },
@@ -7,8 +11,8 @@ module.exports = {
     if (!(typeof merchantUrlScheme === 'string')) throw new Error('merchantUrlScheme must be string')
 
     exec('setupWithMerchantId', [merchantId, merchantUrlScheme], cb)
-    exec('attachListener', [], function () {
-      console.log('attachListener', arguments)
+    exec('attachListener', [], function (prop, value) {
+      if (prop === 'isAppSwitchInProgress') _isAppSwitchInProgress = value
     })
   },
   beginMobilePaymentWithPayment: function (orderId, productPrice, cb) {
