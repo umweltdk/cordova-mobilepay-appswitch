@@ -37,4 +37,4 @@ open-ios:
 	open /tmp/testapp/platforms/ios/testapp.xcworkspace
 
 open-android:
-	open /tmp/testapp/platforms/ios/testapp.xcworkspace
+	open -a "Android Studio" /tmp/testapp/platforms/android/
