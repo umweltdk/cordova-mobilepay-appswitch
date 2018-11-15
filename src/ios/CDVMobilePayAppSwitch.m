@@ -10,6 +10,7 @@
 - (void)attachListener:(CDVInvokedUrlCommand*)command
 {
     listenerCallback = command;
+    [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
 }
 
 - (void)notifyListenerOfProp:(NSString*)prop
