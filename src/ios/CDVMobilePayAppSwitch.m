@@ -102,8 +102,8 @@
                                   @"signature": payment.signature,
                                   @"productPrice": @(payment.productPrice),
                                   @"amountWithdrawnFromCard": @(payment.amountWithdrawnFromCard),
-                                  @"success": @NO,
-                                  @"cancelled": @YES};
+                                  @"success": @YES,
+                                  @"cancelled": @NO};
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:result];
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
