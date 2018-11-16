@@ -13,7 +13,7 @@ module.exports = {
     exec('setupWithMerchantId', [merchantId, merchantUrlScheme], cb)
     exec('attachListener', [], function (prop, value) {
       if (prop === 'isAppSwitchInProgress') _isAppSwitchInProgress = value
-    })
+    }, true)
   },
   beginMobilePaymentWithPayment: function (orderId, productPrice, cb) {
     if (!(typeof orderId === 'string' && orderId.length >= 4)) throw new Error('orderId must be string of at least 4 chars')
@@ -29,7 +29,7 @@ module.exports = {
   }
 }
 
-function exec (method, args, cb) {
+function exec (method, args, cb, multi) {
   return window.cordova.exec(
     onresult,
     onerror,
@@ -40,7 +40,7 @@ function exec (method, args, cb) {
 
   function onresult () {
     cb.apply(cb, [null].concat(Array.prototype.slice.call(arguments)))
-    cb = oncalltwice
+    if (multi == null) cb = oncalltwice
   }
 
   function onerror (err) {
@@ -49,6 +49,6 @@ function exec (method, args, cb) {
   }
 
   function oncalltwice () {
-    console.error('cb called twice')
+    console.error('cb called twice', arguments)
   }
 }
