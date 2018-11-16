@@ -29,6 +29,7 @@ import dk.danskebank.mobilepay.sdk.model.SuccessResult;
 public class CDVMobilePayAppSwitch extends CordovaPlugin {
     private CallbackContext _listenerCallback;
     private CallbackContext _inflightPaymentCallback;
+    private String _inflightOrderId;
     private int MOBILEPAY_PAYMENT_REQUEST_CODE = 0;
 
     private Random srand;
@@ -41,10 +42,13 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
     }
 
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-      if (action.equals("isMobilePayInstalled")) return isMobilePayInstalled(args, callbackContext);
+        if (action.equals("isMobilePayInstalled")) return isMobilePayInstalled(args, callbackContext);
+        if (action.equals("attachListener")) return attachListener(args, callbackContext);
+        if (action.equals("setupWithMerchantId")) return setupWithMerchantId(args, callbackContext);
+        if (action.equals("beginMobilePaymentWithPayment")) return beginMobilePaymentWithPayment(args, callbackContext);
 
-      callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
-      return false;
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
+        return false;
     }
 
     protected boolean isMobilePayInstalled(JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -55,88 +59,143 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
     }
 
     protected boolean attachListener(JSONArray args, CallbackContext callbackContext) throws JSONException {
-      _listenerCallback = callbackContext;
-      notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
-      return true;
+        _listenerCallback = callbackContext;
+        notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+        return true;
     }
 
     protected boolean notifyListenerOfProp (String prop, Object value) {
-      cordova.getActivity().runOnUiThread(() -> {
-          try {
-              PluginResult result = OK(new Object[]{prop, value});
-              result.setKeepCallback(true);
-              _listenerCallback.sendPluginResult(result);
-          } catch (JSONException ex) {
-              _listenerCallback.error("Unable to serialize prop notification");
-          }
-      });
+        cordova.getActivity().runOnUiThread(() -> {
+            try {
+                PluginResult result = OK(new Object[]{prop, value});
+                result.setKeepCallback(true);
+                _listenerCallback.sendPluginResult(result);
+            } catch (JSONException ex) {
+                _listenerCallback.error("Unable to serialize prop notification");
+            }
+        });
 
-      return true;
+        return true;
     }
 
     protected boolean setupWithMerchantId(JSONArray args, CallbackContext callbackContext) throws JSONException {
-      String merchantId = args.getString(0);
+        String merchantId = args.getString(0);
 
-      // Unused by Android
-      // String merchantUrlScheme = args.getString(1)
+        // Unused by Android
+        // String merchantUrlScheme = args.getString(1)
 
-      Country country = Country.DENMARK;
+        Country country = Country.DENMARK;
 
-      MobilePay.getInstance().init(merchantId, country);
-      callbackContext.sendPluginResult(OK(null));
+        MobilePay.getInstance().init(merchantId, country);
+        callbackContext.sendPluginResult(OK(null));
 
-      return true;
+        return true;
     }
 
     protected boolean beginMobilePaymentWithPayment(JSONArray args, CallbackContext callbackContext) throws JSONException {
-      this.MOBILEPAY_PAYMENT_REQUEST_CODE = this.srand.nextInt();
+        this.MOBILEPAY_PAYMENT_REQUEST_CODE = this.srand.nextInt();
 
-      String orderId = args.getString(0);
+        String orderId = args.getString(0);
+        if (orderId.getBytes().length < 4) {
+            callbackContext.error("Too short orderId");
+            return false;
+        }
+        if (orderId.getBytes().length > 66) {
+            callbackContext.error("Too long orderId");
+            return false;
+        }
 
-      double productPrice = args.getDouble(1);
+        double productPrice = args.getDouble(1);
+        if (productPrice < 0) {
+            callbackContext.error("productPrice must be greater than zero");
+            return false;
+        }
 
-      // MobilePay is present on the system. Create a Payment object.
-      Payment payment = new Payment();
-      payment.setProductPrice(new BigDecimal(10.0));
-      payment.setOrderId("86715c57-8840-4a6f-af5f-07ee89107ece");
+        // MobilePay is present on the system. Create a Payment object.
+        Payment payment = new Payment();
+        payment.setProductPrice(new BigDecimal(productPrice));
+        payment.setOrderId(orderId);
 
-      // Create a payment Intent using the Payment object from above.
-      Intent paymentIntent = MobilePay.getInstance().createPaymentIntent(payment);
+        // Create a payment Intent using the Payment object from above.
+        Intent paymentIntent = MobilePay.getInstance().createPaymentIntent(payment);
 
-      // We now jump to MobilePay to complete the transaction. Start MobilePay and wait for the result using an unique result code of your choice.
+        // We now jump to MobilePay to complete the transaction. Start MobilePay and wait for the result using an unique result code of your choice.
         cordova.getActivity().startActivityForResult(paymentIntent, this.MOBILEPAY_PAYMENT_REQUEST_CODE);
-      this.notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+        this.notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+        _inflightOrderId = orderId; // need to fake this one on Android
+        _inflightPaymentCallback = callbackContext;
 
-      callbackContext.sendPluginResult(OK(true));
-
-      return true;
+        return true;
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-      super.onActivityResult(requestCode, resultCode, data);
-      if (requestCode == this.MOBILEPAY_PAYMENT_REQUEST_CODE) {
-        this.MOBILEPAY_PAYMENT_REQUEST_CODE = 0;
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == this.MOBILEPAY_PAYMENT_REQUEST_CODE) {
+            this.MOBILEPAY_PAYMENT_REQUEST_CODE = 0;
 
-        // The request code matches our MobilePay Intent
-        MobilePay.getInstance().handleResult(resultCode, data, new ResultCallback() {
-          @Override
-          public void onSuccess(SuccessResult result) {
-            notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
-            // The payment succeeded - you can deliver the product.
-          }
-          @Override
-          public void onFailure(FailureResult result) {
-            notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
-            // The payment failed - show an appropriate error message to the user. Consult the MobilePay class documentation for possible error codes.
-          }
-          @Override
-          public void onCancel() {
-            notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
-            // The payment was cancelled.
-          }
-        });
-      }
+            // The request code matches our MobilePay Intent
+            MobilePay.getInstance().handleResult(resultCode, data, new ResultCallback() {
+                @Override
+                public void onSuccess(SuccessResult result) {
+                    notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+                    try {
+                        JSONObject map = new JSONObject();
+                        map.put("success", true);
+                        map.put("cancelled", false);
+                        map.put("orderId", result.getOrderId());
+                        map.put("productPrice", 10);
+                        map.put("amountWithdrawnFromCard", result.getAmountWithdrawnFromCard());
+                        map.put("transactionId", result.getTransactionId());
+                        map.put("signature", result.getSignature());
+
+                        _inflightPaymentCallback.sendPluginResult(OK(map));
+                    } catch (JSONException ex) {
+                        _inflightPaymentCallback.error("Unable to serialise success result");
+                    } finally {
+                        _inflightPaymentCallback = null;
+                        _inflightOrderId = null;
+                    }
+                }
+                @Override
+                public void onFailure(FailureResult result) {
+                    notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+                    notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+                    try {
+                        JSONObject map = new JSONObject();
+                        map.put("success", false);
+                        map.put("cancelled", false);
+                        map.put("orderId", result.getOrderId());
+                        map.put("errorCode", result.getErrorCode());
+                        map.put("errorMessage", result.getErrorMessage());
+
+                        _inflightPaymentCallback.sendPluginResult(OK(map));
+                    } catch (JSONException ex) {
+                        _inflightPaymentCallback.error("Unable to serialise error result");
+                    } finally {
+                        _inflightPaymentCallback = null;
+                        _inflightOrderId = null;
+                    }
+                }
+                @Override
+                public void onCancel() {
+                    notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+                    try {
+                        JSONObject map = new JSONObject();
+                        map.put("success", false);
+                        map.put("cancelled", true);
+                        map.put("orderId", _inflightOrderId);
+
+                        _inflightPaymentCallback.sendPluginResult(OK(map));
+                    } catch (JSONException ex) {
+                        _inflightPaymentCallback.error("Unable to serialise cancel result");
+                    } finally {
+                        _inflightPaymentCallback = null;
+                        _inflightOrderId = null;
+                    }
+                }
+            });
+        }
     }
 
     private static PluginResult OK(Object obj) throws JSONException {
