@@ -1,6 +1,6 @@
 # `cordova-mobilepay-appswitch`
 
->
+> Cordova plugin for MobilePay AppSwitch
 
 ## Usage
 
@@ -31,9 +31,20 @@ function onpayment (err, payment) {
 
 ## API
 
+### `window.mobilepay.isAppSwitchInProgress`
+
+Property indicating whether a payment is in progress. Any MobilePay method while
+this is happening will most likely cause an error.
+
 ### `window.mobilepay.isMobilePayInstalled(cb(err, isInstalled))`
 
+Check if the MobilePay (Denmark) app is installed.
+
 ### `window.mobilepay.setupWithMerchantId(merchantId, merchantUrlScheme, cb(err))`
+
+Initialize MobilePay with your `merchantId` and `merchantUrlScheme`. Merchant id
+is provided by MobilePay A/S, the url scheme is iOS only, but must be unique.
+For testing a `merchantId` of `APPDK0000000000` can be used.
 
 ### `window.mobilepay.beginMobilePaymentWithPayment(orderId, productPrice, cb(err, payment))`
 
@@ -62,7 +73,9 @@ Payment will be an object of:
 ## Install
 
 ```sh
-npm install cordova-mobilepay-appswitch
+cordova plugins add cordova-mobilepay-appswitch \
+  --variable WIDGET_ID=io.cordova.hellocordova \ # Replace this with your id
+  --variable URL_SCHEME=hellocordova # Replace this with your unique identifier (iOS only)
 ```
 
 ## License
