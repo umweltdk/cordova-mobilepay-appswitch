@@ -71,14 +71,22 @@
     MobilePayPayment* payment = [[MobilePayPayment alloc] initWithOrderId:orderId productPrice:[productPrice floatValue]];
 
     inflightPaymentCallbackId = command.callbackId;
+    inflightOrderId = orderId;
 
     [[MobilePayManager sharedInstance] beginMobilePaymentWithPayment:payment error:^(NSError * _Nonnull error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:error.userInfo];
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
+              @"orderId": inflightOrderId,
+              @"errorCode": error.userInfo.code,
+              @"errorMessage": [error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
+              @"success": @NO,
+              @"cancelled": @NO
+            }];
 
             [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
             inflightPaymentCallbackId = nil;
+            inflightOrderId = nil;
         });
     }];
 
@@ -108,13 +116,21 @@
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
         inflightPaymentCallbackId = nil;
+        inflightOrderId = nil;
 
     } error:^(NSError * _Nonnull error) {
         [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:error.userInfo];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
+          @"orderId": inflightOrderId,
+          @"errorCode": error.userInfo.code,
+          @"errorMessage": [error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
+          @"success": @NO,
+          @"cancelled": @NO
+        }];
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
         inflightPaymentCallbackId = nil;
+        inflightOrderId = nil;
     } cancel:^(MobilePayCancelledPayment * _Nullable payment) {
         [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
         NSDictionary* result = @{@"orderId": payment.orderId,
@@ -125,6 +141,7 @@
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:inflightPaymentCallbackId];
         inflightPaymentCallbackId = nil;
+        inflightOrderId = nil;
     }];
 }
 

@@ -4,6 +4,7 @@
 @interface CDVMobilePayAppSwitch : CDVPlugin
 {
     NSString* inflightPaymentCallbackId;
+    NSString* inflightOrderId;
     CDVInvokedUrlCommand* listenerCallback;
 }
 
