@@ -7,6 +7,7 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.PluginResult.Status;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,10 +15,8 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.Map;
 import java.util.Random;
 
-import dk.danskebank.mobilepay.sdk.CaptureType;
 import dk.danskebank.mobilepay.sdk.Country;
 import dk.danskebank.mobilepay.sdk.MobilePay;
 import dk.danskebank.mobilepay.sdk.ResultCallback;
@@ -28,6 +27,7 @@ import dk.danskebank.mobilepay.sdk.model.SuccessResult;
 
 public class CDVMobilePayAppSwitch extends CordovaPlugin {
     private CallbackContext _listenerCallback;
+    private final Object _listenerCallbackLock = new Object();
     private CallbackContext _inflightPaymentCallback;
     private String _inflightOrderId;
     private int MOBILEPAY_PAYMENT_REQUEST_CODE = 0;
@@ -53,29 +53,32 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
 
     protected boolean isMobilePayInstalled(JSONArray args, CallbackContext callbackContext) throws JSONException {
         Country country = Country.DENMARK; // TODO make multi country
-        callbackContext.sendPluginResult(OK(MobilePay.getInstance().isMobilePayInstalled(this.cordova.getActivity().getApplicationContext(), country)));
+        boolean isInstalled = MobilePay.getInstance().isMobilePayInstalled(this.cordova.getActivity().getApplicationContext(), country);
+        callbackContext.sendPluginResult(new PluginResult(Status.OK, isInstalled));
 
         return true;
     }
 
     protected boolean attachListener(JSONArray args, CallbackContext callbackContext) throws JSONException {
-        _listenerCallback = callbackContext;
+        synchronized(messageChannelLock) {
+            _listenerCallback = callbackContext;
+        }
         notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
         return true;
     }
 
-    protected boolean notifyListenerOfProp (String prop, Object value) {
-        cordova.getActivity().runOnUiThread(() -> {
+    protected void notifyListenerOfProp (String prop, Object value) {
+        synchronized(messageChannelLock) {
             try {
-                PluginResult result = OK(new Object[]{prop, value});
+                PluginResult result = new PluginResult(Status.OK, new JSONArray(new Object[]{prop, value}));
                 result.setKeepCallback(true);
                 _listenerCallback.sendPluginResult(result);
             } catch (JSONException ex) {
-                _listenerCallback.error("Unable to serialize prop notification");
+                PluginResult result = new PluginResult(Status.ERROR, "Unable to serialize prop notification");
+                result.setKeepCallback(true);
+                _listenerCallback.sendPluginResult(result);
             }
-        });
-
-        return true;
+        }
     }
 
     protected boolean setupWithMerchantId(JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -87,7 +90,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
         Country country = Country.DENMARK;
 
         MobilePay.getInstance().init(merchantId, country);
-        callbackContext.sendPluginResult(OK(JSONObject.NULL));
+        callbackContext.sendPluginResult(new PluginResult(Status.NO_RESULT));
 
         return true;
     }
@@ -121,7 +124,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
 
         // We now jump to MobilePay to complete the transaction. Start MobilePay and wait for the result using an unique result code of your choice.
         cordova.getActivity().startActivityForResult(paymentIntent, this.MOBILEPAY_PAYMENT_REQUEST_CODE);
-        this.notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
+        notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
         _inflightOrderId = orderId; // need to fake this one on Android
         _inflightPaymentCallback = callbackContext;
 
@@ -149,7 +152,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                         map.put("transactionId", result.getTransactionId());
                         map.put("signature", result.getSignature());
 
-                        _inflightPaymentCallback.sendPluginResult(OK(map));
+                        _inflightPaymentCallback.success(map);
                     } catch (JSONException ex) {
                         _inflightPaymentCallback.error("Unable to serialise success result");
                     } finally {
@@ -160,7 +163,6 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                 @Override
                 public void onFailure(FailureResult result) {
                     notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
-                    notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
                     try {
                         JSONObject map = new JSONObject();
                         map.put("success", false);
@@ -169,7 +171,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                         map.put("errorCode", result.getErrorCode());
                         map.put("errorMessage", result.getErrorMessage());
 
-                        _inflightPaymentCallback.sendPluginResult(OK(map));
+                        _inflightPaymentCallback.success(map);
                     } catch (JSONException ex) {
                         _inflightPaymentCallback.error("Unable to serialise error result");
                     } finally {
@@ -186,7 +188,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                         map.put("cancelled", true);
                         map.put("orderId", _inflightOrderId);
 
-                        _inflightPaymentCallback.sendPluginResult(OK(map));
+                        _inflightPaymentCallback.success(map);
                     } catch (JSONException ex) {
                         _inflightPaymentCallback.error("Unable to serialise cancel result");
                     } finally {
@@ -196,19 +198,5 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                 }
             });
         }
-    }
-
-    private static PluginResult OK(Object obj) throws JSONException {
-        return createPluginResult(obj, PluginResult.Status.OK);
-    }
-
-    private static PluginResult ERROR(Object obj) throws JSONException {
-        return createPluginResult(obj, PluginResult.Status.ERROR);
-    }
-
-    private static PluginResult createPluginResult(Object obj, PluginResult.Status status) throws JSONException {
-        JSONArray json = new JSONArray(obj);
-        PluginResult result = new PluginResult(status, json);
-        return result;
     }
 }
