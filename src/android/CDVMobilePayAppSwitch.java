@@ -87,7 +87,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
         Country country = Country.DENMARK;
 
         MobilePay.getInstance().init(merchantId, country);
-        callbackContext.sendPluginResult(OK(null));
+        callbackContext.sendPluginResult(OK(JSONObject.NULL));
 
         return true;
     }
