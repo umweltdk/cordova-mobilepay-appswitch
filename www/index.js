@@ -11,8 +11,9 @@ module.exports = {
     if (!(typeof merchantUrlScheme === 'string')) throw new Error('merchantUrlScheme must be string')
 
     exec('setupWithMerchantId', [merchantId, merchantUrlScheme], cb)
-    exec('attachListener', [], function (prop, value) {
-      if (prop === 'isAppSwitchInProgress') _isAppSwitchInProgress = value
+    exec('attachListener', [], function (err, res) {
+      if (err) console.error(err)
+      if (res[0] === 'isAppSwitchInProgress') _isAppSwitchInProgress = res[1]
     }, true)
   },
   beginMobilePaymentWithPayment: function (orderId, productPrice, cb) {
