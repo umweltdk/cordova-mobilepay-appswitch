@@ -96,7 +96,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
     }
 
     protected boolean beginMobilePaymentWithPayment(JSONArray args, CallbackContext callbackContext) throws JSONException {
-        this.MOBILEPAY_PAYMENT_REQUEST_CODE = this.srand.nextInt();
+        MOBILEPAY_PAYMENT_REQUEST_CODE = this.srand.nextInt(65535) + 1;
 
         String orderId = args.getString(0);
         if (orderId.getBytes().length < 4) {
@@ -123,7 +123,8 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
         Intent paymentIntent = MobilePay.getInstance().createPaymentIntent(payment);
 
         // We now jump to MobilePay to complete the transaction. Start MobilePay and wait for the result using an unique result code of your choice.
-        cordova.getActivity().startActivityForResult(paymentIntent, this.MOBILEPAY_PAYMENT_REQUEST_CODE);
+        cordova.setActivityResultCallback (this);
+        cordova.startActivityForResult(this, paymentIntent, MOBILEPAY_PAYMENT_REQUEST_CODE);
         notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
         _inflightOrderId = orderId; // need to fake this one on Android
         _inflightPaymentCallback = callbackContext;
@@ -134,8 +135,8 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == this.MOBILEPAY_PAYMENT_REQUEST_CODE) {
-            this.MOBILEPAY_PAYMENT_REQUEST_CODE = 0;
+        if (requestCode == MOBILEPAY_PAYMENT_REQUEST_CODE) {
+            MOBILEPAY_PAYMENT_REQUEST_CODE = 0;
 
             // The request code matches our MobilePay Intent
             MobilePay.getInstance().handleResult(resultCode, data, new ResultCallback() {
