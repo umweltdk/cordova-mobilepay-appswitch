@@ -60,7 +60,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
     }
 
     protected boolean attachListener(JSONArray args, CallbackContext callbackContext) throws JSONException {
-        synchronized(messageChannelLock) {
+        synchronized(_listenerCallbackLock) {
             _listenerCallback = callbackContext;
         }
         notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
@@ -68,7 +68,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
     }
 
     protected void notifyListenerOfProp (String prop, Object value) {
-        synchronized(messageChannelLock) {
+        synchronized(_listenerCallbackLock) {
             try {
                 PluginResult result = new PluginResult(Status.OK, new JSONArray(new Object[]{prop, value}));
                 result.setKeepCallback(true);
