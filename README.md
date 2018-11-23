@@ -67,8 +67,13 @@ Payment will be an object of:
   signature: String,
   productPrice: Number,
   amountWithdrawnFromCard: Number
+
+  errorCode: Number,
+  errorMessage: String
 }
 ```
+
+Errors are documented here: https://github.com/MobilePayDev/MobilePay-AppSwitch-SDK/wiki/Error-handling
 
 ## Install
 
