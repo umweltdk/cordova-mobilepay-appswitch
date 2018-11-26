@@ -40,11 +40,18 @@ this is happening will most likely cause an error.
 
 Check if the MobilePay (Denmark) app is installed.
 
-### `window.mobilepay.setupWithMerchantId(merchantId, merchantUrlScheme, cb(err))`
+### `window.mobilepay.setupWithMerchantId(merchantId, merchantUrlScheme, [options], cb(err))`
 
 Initialize MobilePay with your `merchantId` and `merchantUrlScheme`. Merchant id
 is provided by MobilePay A/S, the url scheme is iOS only, but must be unique.
 For testing a `merchantId` of `APPDK0000000000` can be used.
+
+`options` include:
+
+* `returnSeconds`: How long is the MobilePay receipt shown. Default `5` seconds.
+  Allowed range is `0` - `9`, both inclusive.
+* `timeoutSeconds`: How long is the user given before the payment errors.
+  Default `0` seconds (infinite). Allowed range is `0` - `1200`, both inclusive.
 
 ### `window.mobilepay.beginMobilePaymentWithPayment(orderId, productPrice, cb(err, payment))`
 

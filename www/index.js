@@ -9,6 +9,10 @@ module.exports = {
   setupWithMerchantId: function (merchantId, merchantUrlScheme, options, cb) {
     if (!(typeof merchantId === 'string')) throw new Error('merchantId must be string')
     if (!(typeof merchantUrlScheme === 'string')) throw new Error('merchantUrlScheme must be string')
+    if (typeof options === 'function') {
+      cb = options
+      options = null
+    }
 
     options = options || {}
 
