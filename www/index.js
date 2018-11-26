@@ -6,11 +6,13 @@ module.exports = {
   isMobilePayInstalled: function (cb) {
     exec('isMobilePayInstalled', [], cb)
   },
-  setupWithMerchantId: function (merchantId, merchantUrlScheme, cb) {
+  setupWithMerchantId: function (merchantId, merchantUrlScheme, options, cb) {
     if (!(typeof merchantId === 'string')) throw new Error('merchantId must be string')
     if (!(typeof merchantUrlScheme === 'string')) throw new Error('merchantUrlScheme must be string')
 
-    exec('setupWithMerchantId', [merchantId, merchantUrlScheme], cb)
+    options = options || {}
+
+    exec('setupWithMerchantId', [merchantId, merchantUrlScheme, options], cb)
     exec('attachListener', [], function (err, res) {
       if (err) console.error(err)
       if (res[0] === 'isAppSwitchInProgress') _isAppSwitchInProgress = res[1]

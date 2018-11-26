@@ -66,9 +66,9 @@
 
     NSNumber* productPrice = [command argumentAtIndex:1];
     if ([self assert:(productPrice != nil) errorMessage:@"Missing productPrice" command:command]) return;
-    if ([self assert:([productPrice floatValue] > 0) errorMessage:@"productPrice must be greater than zero" command:command]) return;
+    if ([self assert:([productPrice doubleValue] > 0) errorMessage:@"productPrice must be greater than zero" command:command]) return;
 
-    MobilePayPayment* payment = [[MobilePayPayment alloc] initWithOrderId:orderId productPrice:[productPrice floatValue]];
+    MobilePayPayment* payment = [[MobilePayPayment alloc] initWithOrderId:orderId productPrice:[productPrice doubleValue]];
 
     inflightPaymentCallbackId = command.callbackId;
     inflightOrderId = orderId;
