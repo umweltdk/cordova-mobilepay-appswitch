@@ -1,4 +1,8 @@
 import { IonicNativePlugin } from '@ionic-native/core';
+export interface MobilePaySetupOptions {
+    returnSeconds?: number;
+    timeoutSeconds?: number;
+}
 export interface PaymentResult {
     success: boolean;
     cancelled: boolean;
@@ -18,6 +22,6 @@ export declare type PaymentError = PaymentResult & {
 export declare class MobilePayAppSwitch extends IonicNativePlugin {
     isAppSwitchInProgress: boolean;
     isMobilePayInstalled(): Promise<boolean>;
-    setupWithMerchantId(merchantId: string, merchantUrlScheme: string): Promise<void>;
+    setupWithMerchantId(merchantId: string, merchantUrlScheme: string, options?: MobilePaySetupOptions): Promise<void>;
     beginMobilePaymentWithPayment(orderId: string, productPrice: number): Promise<PaymentSuccess | PaymentCancelled | PaymentError>;
 }

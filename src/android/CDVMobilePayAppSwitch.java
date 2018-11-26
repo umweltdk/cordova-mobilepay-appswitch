@@ -87,9 +87,36 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
         // Unused by Android
         // String merchantUrlScheme = args.getString(1)
 
+        JSONObject options = args.getJSONObject(2);
+        if (options == null) options = new JSONObject(); // Just so we dont have to handle this case
+
         Country country = Country.DENMARK;
 
         MobilePay.getInstance().init(merchantId, country);
+
+        int returnSeconds = options.optInt("returnSeconds", 5);
+        if (returnSeconds < 0) {
+            callbackContext.error("returnSeconds must not be negative");
+            return false;
+        }
+        if (returnSeconds > 9) {
+            callbackContext.error("returnSeconds must not be greater than 9s");
+            return false;
+        }
+
+        int timeoutSeconds = options.optInt("timeoutSeconds", 0);
+        if (timeoutSeconds < 0) {
+            callbackContext.error("timeoutSeconds must not be negative");
+            return false;
+        }
+        if (timeoutSeconds > 1200) {
+            callbackContext.error("timeoutSeconds must not be greater than 1200s");
+            return false;
+        }
+
+        MobilePay.getInstance().setReturnSeconds(returnSeconds);
+        MobilePay.getInstance().setTimeoutSeconds(timeoutSeconds);
+
         callbackContext.sendPluginResult(new PluginResult(Status.OK, true));
 
         return true;
@@ -103,6 +130,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
             callbackContext.error("Too short orderId");
             return false;
         }
+
         if (orderId.getBytes().length > 66) {
             callbackContext.error("Too long orderId");
             return false;
