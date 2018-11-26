@@ -93,7 +93,7 @@
             [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
               @"orderId": inflightOrderId,
-              @"errorCode": error.userInfo.code,
+              @"errorCode": [NSNumber numberWithInteger:error.code],
               @"errorMessage": [error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
               @"success": @NO,
               @"cancelled": @NO
@@ -137,7 +137,7 @@
         [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
           @"orderId": inflightOrderId,
-          @"errorCode": error.userInfo.code,
+          @"errorCode": [NSNumber numberWithInteger:error.code],
           @"errorMessage": [error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
           @"success": @NO,
           @"cancelled": @NO
