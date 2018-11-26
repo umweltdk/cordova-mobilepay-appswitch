@@ -51,7 +51,9 @@ For testing a `merchantId` of `APPDK0000000000` can be used.
 `orderId` must be globally unique as it is a mechanism from MobilePay to prevent
 double payments in case of failure. Two identical `orderId`s created more than
 24 hours apart will get different transaction id's, but still be considered the
-same order.
+same order. Notice that `err` is not a Javascript `Error` object, but the below
+object with `success === false`, `cancelled === false` and the `errorCode` and
+`errorMessage` properties set.
 
 Payment will be an object of:
 
@@ -62,12 +64,15 @@ Payment will be an object of:
   success: Boolean,
   cancelled: Boolean,
 
-  // These properties are only present if success === false (cancelled is always the negation of success)
+  // These properties are only present if
+  // success === true && cancelled === false
+  // (cancelled is always the negation of success)
   transactionId: String,
   signature: String,
   productPrice: Number,
   amountWithdrawnFromCard: Number
 
+  // These properties are only present when called on err
   errorCode: Number,
   errorMessage: String
 }
