@@ -77,7 +77,8 @@
     NSString* orderId = [command argumentAtIndex:0];
     if ([self assert:(orderId != nil) errorMessage:@"Missing orderId" command:command]) return;
     // As per https://github.com/MobilePayDev/MobilePay-AppSwitch-SDK/wiki/Parameter-specification
-    if ([self assert:([orderId length] >= 4) errorMessage:@"Too short orderId (must be 4 chars)" command:command]) return;
+    if ([self assert:([orderId length] >= 4) errorMessage:@"Too short orderId (must be at least 4 chars)" command:command]) return;
+    if ([self assert:([orderId length] <= 50) errorMessage:@"Too long orderId (must be at most 50 chars)" command:command]) return;
 
     NSNumber* productPrice = [command argumentAtIndex:1];
     if ([self assert:(productPrice != nil) errorMessage:@"Missing productPrice" command:command]) return;

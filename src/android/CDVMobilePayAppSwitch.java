@@ -127,12 +127,12 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
 
         String orderId = args.getString(0);
         if (orderId.getBytes().length < 4) {
-            callbackContext.error("Too short orderId");
+            callbackContext.error("Too short orderId (must be at least 4 chars)");
             return false;
         }
 
-        if (orderId.getBytes().length > 66) {
-            callbackContext.error("Too long orderId");
+        if (orderId.getBytes().length > 50) {
+            callbackContext.error("Too long orderId (must be at most 50 chars)");
             return false;
         }
 
