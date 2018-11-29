@@ -42,7 +42,7 @@
     NSString* merchantUrlScheme =  [command argumentAtIndex:1];
     if ([self assert:(merchantUrlScheme != nil) errorMessage:@"Missing merchantUrlScheme" command:command]) return;
 
-    NSDictionary* options = [command argumentAtIndex:3 withDefault:nil andClass:[NSDictionary class]];
+    NSDictionary* options = [command argumentAtIndex:2 withDefault:nil andClass:[NSDictionary class]];
 
     // These ranges come form the disassembled .jar file
     NSNumber* maybeReturnSeconds = [options objectForKey:@"returnSeconds"];
@@ -51,7 +51,7 @@
     if ([self assert:(returnSeconds <= 9) errorMessage:@"returnSeconds must not be greater than 9s" command:command]) return;
 
     NSNumber* maybeTimeoutSeconds = [options objectForKey:@"timeoutSeconds"];
-    int timeoutSeconds = maybeTimeoutSeconds != nil ? [maybeTimeoutSeconds intValue] : 5;
+    int timeoutSeconds = maybeTimeoutSeconds != nil ? [maybeTimeoutSeconds intValue] : 0;
     if ([self assert:(timeoutSeconds >= 0) errorMessage:@"timeoutSeconds must not be negative" command:command]) return;
     if ([self assert:(timeoutSeconds <= 1200) errorMessage:@"timeoutSeconds must not be greater than 1200s" command:command]) return;
 
