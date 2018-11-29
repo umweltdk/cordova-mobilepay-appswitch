@@ -95,6 +95,25 @@ cordova plugins add cordova-mobilepay-appswitch \
   --variable URL_SCHEME=hellocordova # Replace this with your unique identifier (iOS only)
 ```
 
+## Known Issues
+
+MobilePay AppSwitch SDK does not list any known issues, however during the
+development of this plugin, several issues have been found and reported to
+MobilePay, but are deemed "not a priority" by MobilePay:
+
+* On iOS MobilePay SDK represents prices as `float` and not `double`, which
+  means that prices such as `1.26` become `1.259999…`
+* The MobilePay list of error codes is not exhaustive. For example on iOS you
+  may sometimes get `errorCode` `1001` due to technical errors.
+* Sometimes the AppSwitch may fail if any Javascript errors happen after
+  `beginMobilePaymentWithPayment` but before the AppSwitch happened. This will
+  still open the MobilePay app, but not show any AppSwitch, while the SDK in
+  the origin app is in the `isAppSwitchInProgress === true` state. There is no
+  API to force clear this state, except restart the origin app.
+* The previous error has also been observed when switching back and fourth
+  between the origin app and MobilePay.
+* The Android JAR file is included in this repository as it is not available on
+  any public package manager. The iOS SDK is downloaded from CocoaPods
 ## License
 
 [ISC](LICENSE)
