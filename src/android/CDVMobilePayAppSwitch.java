@@ -17,13 +17,12 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import dk.danskebank.mobilepay.sdk.Country;
-import dk.danskebank.mobilepay.sdk.MobilePay;
-import dk.danskebank.mobilepay.sdk.ResultCallback;
-import dk.danskebank.mobilepay.sdk.model.FailureResult;
-import dk.danskebank.mobilepay.sdk.model.Payment;
-import dk.danskebank.mobilepay.sdk.model.SuccessResult;
-
+import dk.mobilepay.sdk.Country;
+import dk.mobilepay.sdk.MobilePay;
+import dk.mobilepay.sdk.ResultCallback;
+import dk.mobilepay.sdk.model.FailureResult;
+import dk.mobilepay.sdk.model.Payment;
+import dk.mobilepay.sdk.model.SuccessResult;
 
 public class CDVMobilePayAppSwitch extends CordovaPlugin {
     private CallbackContext _listenerCallback;
@@ -114,7 +113,8 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
             return false;
         }
 
-        MobilePay.getInstance().setReturnSeconds(returnSeconds);
+        // Seems like you can no longer use setReturnSeconds
+        // MobilePay.getInstance().setReturnSeconds(returnSeconds);
         MobilePay.getInstance().setTimeoutSeconds(timeoutSeconds);
 
         callbackContext.sendPluginResult(new PluginResult(Status.OK, true));
@@ -209,7 +209,7 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                     }
                 }
                 @Override
-                public void onCancel() {
+                public void onCancel(String string) {
                     notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
                     try {
                         JSONObject map = new JSONObject();
