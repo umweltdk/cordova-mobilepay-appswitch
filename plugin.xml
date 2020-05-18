@@ -8,7 +8,7 @@
   <repo>git+https://github.com/emilbayes/cordova-mobilepay-appswitch.git</repo>
   <issue>https://github.com/emilbayes/cordova-mobilepay-appswitch/issues</issue>
   <js-module src="www/index.js" name="MobilePayAppSwitch">
-      <clobbers target="mobilepay"/>
+    <clobbers target="mobilepay"/>
   </js-module>
   <platform name="android">
     <source-file src="src/android/CDVMobilePayAppSwitch.java" target-dir="src/com/github/emilbayes/CDVMobilePayAppSwitch"/>
@@ -23,7 +23,7 @@
   <platform name="ios">
     <preference name="WIDGET_ID"/>
     <preference name="URL_SCHEME"/>
-    <framework src="MobilePay-AppSwitch-SDK" type="podspec" spec="~> 1.8"/>
+    <framework src="MobilePay-AppSwitch-SDK" type="podspec" spec="~> 2.2"/>
 
     <config-file target="config.xml" parent="/*">
       <!-- <preference  href="mobilepay:*" />
@@ -44,10 +44,10 @@
           <string>$WIDGET_ID</string>
           <key>CFBundleURLSchemes</key>
           <array>
-              <string>$URL_SCHEME</string>
+            <string>$URL_SCHEME</string>
           </array>
         </dict>
-    </array>
+      </array>
     </config-file>
     <config-file target="*-Info.plist" parent="LSApplicationQueriesSchemes">
       <array>
