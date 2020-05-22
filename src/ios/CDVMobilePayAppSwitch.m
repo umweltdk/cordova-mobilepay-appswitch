@@ -45,11 +45,6 @@
     NSDictionary* options = [command argumentAtIndex:2 withDefault:nil andClass:[NSDictionary class]];
 
     // These ranges come form the disassembled .jar file
-    NSNumber* maybeReturnSeconds = [options objectForKey:@"returnSeconds"];
-    int returnSeconds = maybeReturnSeconds != nil ? [maybeReturnSeconds intValue] : 5;
-    if ([self assert:(returnSeconds >= 0) errorMessage:@"returnSeconds must not be negative" command:command]) return;
-    if ([self assert:(returnSeconds <= 9) errorMessage:@"returnSeconds must not be greater than 9s" command:command]) return;
-
     NSNumber* maybeTimeoutSeconds = [options objectForKey:@"timeoutSeconds"];
     int timeoutSeconds = maybeTimeoutSeconds != nil ? [maybeTimeoutSeconds intValue] : 0;
     if ([self assert:(timeoutSeconds >= 0) errorMessage:@"timeoutSeconds must not be negative" command:command]) return;
@@ -68,7 +63,6 @@
 
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
-
 
 - (void)beginMobilePaymentWithPayment:(CDVInvokedUrlCommand*)command
 {
