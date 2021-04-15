@@ -48,8 +48,6 @@ For testing a `merchantId` of `APPDK0000000000` can be used.
 
 `options` include:
 
-* `returnSeconds`: How long is the MobilePay receipt shown. Default `5` seconds.
-  Allowed range is `0` - `9`, both inclusive.
 * `timeoutSeconds`: How long is the user given before the payment errors.
   Default `0` seconds (infinite). Allowed range is `0` - `1200`, both inclusive.
 

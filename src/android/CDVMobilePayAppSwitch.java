@@ -17,19 +17,17 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import dk.danskebank.mobilepay.sdk.Country;
-import dk.danskebank.mobilepay.sdk.MobilePay;
-import dk.danskebank.mobilepay.sdk.ResultCallback;
-import dk.danskebank.mobilepay.sdk.model.FailureResult;
-import dk.danskebank.mobilepay.sdk.model.Payment;
-import dk.danskebank.mobilepay.sdk.model.SuccessResult;
-
+import dk.mobilepay.sdk.Country;
+import dk.mobilepay.sdk.MobilePay;
+import dk.mobilepay.sdk.ResultCallback;
+import dk.mobilepay.sdk.model.FailureResult;
+import dk.mobilepay.sdk.model.Payment;
+import dk.mobilepay.sdk.model.SuccessResult;
 
 public class CDVMobilePayAppSwitch extends CordovaPlugin {
     private CallbackContext _listenerCallback;
     private final Object _listenerCallbackLock = new Object();
     private CallbackContext _inflightPaymentCallback;
-    private String _inflightOrderId;
     private int MOBILEPAY_PAYMENT_REQUEST_CODE = 0;
 
     private Random srand;
@@ -114,7 +112,8 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
             return false;
         }
 
-        MobilePay.getInstance().setReturnSeconds(returnSeconds);
+        // Seems like you can no longer use setReturnSeconds
+        // MobilePay.getInstance().setReturnSeconds(returnSeconds);
         MobilePay.getInstance().setTimeoutSeconds(timeoutSeconds);
 
         callbackContext.sendPluginResult(new PluginResult(Status.OK, true));
@@ -154,7 +153,6 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
         cordova.setActivityResultCallback (this);
         cordova.startActivityForResult(this, paymentIntent, MOBILEPAY_PAYMENT_REQUEST_CODE);
         notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
-        _inflightOrderId = orderId; // need to fake this one on Android
         _inflightPaymentCallback = callbackContext;
 
         return true;
@@ -186,7 +184,6 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                         _inflightPaymentCallback.error("Unable to serialise success result");
                     } finally {
                         _inflightPaymentCallback = null;
-                        _inflightOrderId = null;
                     }
                 }
                 @Override
@@ -205,24 +202,22 @@ public class CDVMobilePayAppSwitch extends CordovaPlugin {
                         _inflightPaymentCallback.error("Unable to serialise error result");
                     } finally {
                         _inflightPaymentCallback = null;
-                        _inflightOrderId = null;
                     }
                 }
                 @Override
-                public void onCancel() {
+                public void onCancel(String orderId) {
                     notifyListenerOfProp("isAppSwitchInProgress", MobilePay.getInstance().hasActivePayment());
                     try {
                         JSONObject map = new JSONObject();
                         map.put("success", false);
                         map.put("cancelled", true);
-                        map.put("orderId", _inflightOrderId);
+                        map.put("orderId", orderId);
 
                         _inflightPaymentCallback.success(map);
                     } catch (JSONException ex) {
                         _inflightPaymentCallback.error("Unable to serialise cancel result");
                     } finally {
                         _inflightPaymentCallback = null;
-                        _inflightOrderId = null;
                     }
                 }
             });

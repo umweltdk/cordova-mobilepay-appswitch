@@ -45,11 +45,6 @@
     NSDictionary* options = [command argumentAtIndex:2 withDefault:nil andClass:[NSDictionary class]];
 
     // These ranges come form the disassembled .jar file
-    NSNumber* maybeReturnSeconds = [options objectForKey:@"returnSeconds"];
-    int returnSeconds = maybeReturnSeconds != nil ? [maybeReturnSeconds intValue] : 5;
-    if ([self assert:(returnSeconds >= 0) errorMessage:@"returnSeconds must not be negative" command:command]) return;
-    if ([self assert:(returnSeconds <= 9) errorMessage:@"returnSeconds must not be greater than 9s" command:command]) return;
-
     NSNumber* maybeTimeoutSeconds = [options objectForKey:@"timeoutSeconds"];
     int timeoutSeconds = maybeTimeoutSeconds != nil ? [maybeTimeoutSeconds intValue] : 0;
     if ([self assert:(timeoutSeconds >= 0) errorMessage:@"timeoutSeconds must not be negative" command:command]) return;
@@ -61,8 +56,7 @@
      setupWithMerchantId:merchantId
      merchantUrlScheme:merchantUrlScheme
      timeoutSeconds:timeoutSeconds
-     returnSeconds:returnSeconds
-     captureType:MobilePayCaptureType_Capture // TODO make option
+     captureType:MobilePayCaptureType_Reserve // TODO make option
      country:country];
 
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -80,22 +74,22 @@
     if ([self assert:([orderId length] >= 4) errorMessage:@"Too short orderId (must be at least 4 chars)" command:command]) return;
     if ([self assert:([orderId length] <= 50) errorMessage:@"Too long orderId (must be at most 50 chars)" command:command]) return;
 
-    NSNumber* productPrice = [command argumentAtIndex:1];
+    NSDecimalNumber* productPrice = [command argumentAtIndex:1];
     if ([self assert:(productPrice != nil) errorMessage:@"Missing productPrice" command:command]) return;
-    if ([self assert:([productPrice doubleValue] > 0) errorMessage:@"productPrice must be greater than zero" command:command]) return;
+    if ([self assert:(productPrice > 0) errorMessage:@"productPrice must be greater than zero" command:command]) return;
 
-    MobilePayPayment* payment = [[MobilePayPayment alloc] initWithOrderId:orderId productPrice:[productPrice doubleValue]];
+    MobilePayPayment* payment = [[MobilePayPayment alloc] initWithOrderId:orderId productPrice:productPrice];
 
     inflightPaymentCallbackId = command.callbackId;
     inflightOrderId = orderId;
 
-    [[MobilePayManager sharedInstance] beginMobilePaymentWithPayment:payment error:^(NSError * _Nonnull error) {
+    [[MobilePayManager sharedInstance] beginMobilePaymentWithPayment:payment error:^(MobilePayErrorPayment * _Nonnull error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
               @"orderId": inflightOrderId,
-              @"errorCode": [NSNumber numberWithInteger:error.code],
-              @"errorMessage": [error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
+              @"errorCode": [NSNumber numberWithInteger:error.error.code],
+              @"errorMessage": [error.error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
               @"success": @NO,
               @"cancelled": @NO
             }];
@@ -124,8 +118,7 @@
         NSDictionary* result = @{@"orderId": payment.orderId,
                                   @"transactionId": payment.transactionId,
                                   @"signature": payment.signature,
-                                  @"productPrice": @(payment.productPrice),
-                                  @"amountWithdrawnFromCard": @(payment.amountWithdrawnFromCard),
+                                  @"amountWithdrawnFromCard": payment.amountWithdrawnFromCard,
                                   @"success": @YES,
                                   @"cancelled": @NO};
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:result];
@@ -134,12 +127,12 @@
         inflightPaymentCallbackId = nil;
         inflightOrderId = nil;
 
-    } error:^(NSError * _Nonnull error) {
+    } error:^(MobilePayErrorPayment * _Nullable error) {
         [self notifyListenerOfProp:@"isAppSwitchInProgress" value:@([[MobilePayManager sharedInstance] isAppSwitchInProgress])];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
           @"orderId": inflightOrderId,
-          @"errorCode": [NSNumber numberWithInteger:error.code],
-          @"errorMessage": [error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
+          @"errorCode": [NSNumber numberWithInteger:error.error.code],
+          @"errorMessage": [error.error.userInfo valueForKey:NSLocalizedFailureReasonErrorKey],
           @"success": @NO,
           @"cancelled": @NO
         }];
